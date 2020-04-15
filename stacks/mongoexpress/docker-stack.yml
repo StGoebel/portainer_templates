@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  mongo-express:
+    image: mongo-express:0.49 # Check https://docs.mongodb.com/manual/release-notes/
+    hostname: mongo-express
+    depends_on:
+      - mongo-db
+    # Because within the same network the containers
+    # are connected port exposing is not required --> only for external access
+    ports:
+      - "8081:8081"
+    networks:
+      - fiware
+    environment:
+      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
+      - ME_CONFIG_MONGODB_SERVER=mongo-db
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+networks:
+  fiware:
+    driver: overlay

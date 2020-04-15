@@ -1,0 +1,35 @@
+version: '3.7'
+
+services:
+  quantumleap:
+    image: smartsdk/quantumleap:0.7.0
+    hostname: quantumleap
+    depends_on:
+      - mongo-db
+      - orion
+      - crate
+    # Docker stack does not allow additional health check
+    # healthcheck:
+    #  test: curl --fail -s http://quantumleap:8668/v2/version || exit 1
+    networks:
+      - fiware
+    ports:
+      - "8668:8668"
+    environment:
+      - CRATE_HOST=crate
+      # - USE_GEOCODING=false
+      # - REDIS_HOST=redis
+      # - REDIS_PORT=6379
+    deploy:
+      replicas: 5
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 10m
+
+networks:
+  fiware:
+    driver: overlay

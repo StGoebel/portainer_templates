@@ -1,0 +1,684 @@
+version: '3.7'
+
+services:
+  watchdog_1:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_absdeviation:0.2
+    hostname: watchdog_1
+    networks:
+      - net
+    command: -rm
+    # configs:
+    #  - watchdog_1.env
+    environment:
+      - NAME=wd_bd_temperature_virtual_absdeviation
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_bd_temperature_virtual_abs
+      - WITH_VALUE=True
+      - NUMBER_PARS=1
+      - MAXIMUM=10
+      - INPUT_NAMES_1=bd_temperature_virtual
+      - INPUT_NAMES_2=bc_set_temperature_virtual
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_2:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_rmse:0.2
+    hostname: watchdog_2
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_bd_temperature_virtual_rmse
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=5
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_bd_temperature_virtual_rmse
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TIME_PERIOD=15
+      - EXPONENT=2
+      - MAXIMUM=10
+      - SET_VALUE=bc_set_temperature_virtual
+      - ACTUAL_VALUE=bd_temperature_virtual
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  # watchdog_3:
+    # image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_deviation:0.3
+    # hostname: watchdog_3
+    # networks:
+      # - net
+    # command: -rm
+    # environment:
+      # - NAME=wd_es_mass_flow_rate_deviation
+      # - HOST=137.226.248.107
+      # - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      # - FIWARE_SERVICE=testservice
+      # - FIWARE_SERVICEPATH=/test/servicepath
+      # - START_TIME=0
+      # - END_TIME=18000
+      # - TIME_STEP=1
+      # - WITH_REALTIME=True
+      # - WITH_OUTPUT=True
+      # - OUTPUT_NAME=dg_es_mass_flow_rate_dev
+      # - WITH_VALUE=True
+      # - NUMBER_PARS=2
+      # - MAXIMUM=25
+      # - MINIMUM=-25
+      # - INPUT_NAMES_1=es_set_mass_flow_rate
+      # - INPUT_NAMES_2=es_mass_flow_rate
+    # deploy:
+      # replicas: 1
+      # placement:
+        # constraints: [node.role == manager]
+    # logging:
+      # driver: "json-file"
+      # options:
+        # max-file: 5
+        # max-size: 50m
+
+  watchdog_4:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_rmse:0.2
+    hostname: watchdog_4
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_mass_flow_rate_rmse
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=5
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_mass_flow_rate_rmse
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TIME_PERIOD=20
+      - EXPONENT=2
+      - MAXIMUM=20
+      - SET_VALUE=es_set_mass_flow_rate
+      - ACTUAL_VALUE=es_mass_flow_rate
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_5:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    hostname: watchdog_5
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_bd_flow_temperature_threshold_mod
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_bd_flow_temperature_mod
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - THRESHOLD=30
+      - MAXIMUM=30
+      - INPUT_NAMES_1=bd_flow_temperature
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_6:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    hostname: watchdog_6
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_bd_heat_flow_rate_threshold_mod
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_bd_heat_flow_rate_mod
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - THRESHOLD=30
+      - MAXIMUM=30
+      - INPUT_NAMES_1=bd_heat_flow_rate
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_7:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    hostname: watchdog_7
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_flow_temperature_threshold_mod
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_flow_temperature_mod
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - THRESHOLD=30
+      - MAXIMUM=30
+      - INPUT_NAMES_1=es_flow_temperature
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_8:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    hostname: watchdog_8
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_mass_flow_rate_threshold_mod
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_mass_flow_rate_mod
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - THRESHOLD=30
+      - MAXIMUM=30
+      - INPUT_NAMES_1=es_mass_flow_rate
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_9:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    hostname: watchdog_9
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_mass_flow_rate_threshold
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_mass_flow_rate_threshold
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=3
+      - THRESHOLD=0
+      - MAXIMUM=1000
+      - INPUT_NAMES_1=es_mass_flow_rate
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_10:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    hostname: watchdog_10
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_hp_power_demand_threshold_mod
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_hp_power_demand_mod
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - THRESHOLD=30
+      - MAXIMUM=30
+      - INPUT_NAMES_1=hp_power_demand
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_11:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    hostname: watchdog_11
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_set_ambient_temperature_threshold_mod
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_set_ambient_temperature_mod
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - THRESHOLD=30
+      - MAXIMUM=30
+      - INPUT_NAMES_1=es_set_ambient_temperature
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_12:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    hostname: watchdog_12
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_set_flow_temperature_threshold_mod
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_set_flow_temperature_mod
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - THRESHOLD=30
+      - MAXIMUM=30
+      - INPUT_NAMES_1=es_set_flow_temperature
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_13:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    hostname: watchdog_13
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_bd_set_ambient_temperature_threshold_mod
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_bd_set_ambient_temperature_mod
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - THRESHOLD=30
+      - MAXIMUM=30
+      - INPUT_NAMES_1=bd_set_ambient_temperature
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_14:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_cop:0.2
+    hostname: watchdog_14
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_cop
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=5
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_cop
+      - WITH_VALUE=True
+      - NUMBER_PARS=0
+      - MASS_FLOW_RATE=es_mass_flow_rate
+      - FLOW_TEMPERATURE=es_flow_temperature
+      - RETURN_TEMPERATURE=bd_return_temperature
+      - POWER_DEMAND=hp_power_demand
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_15:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_mcop:0.1
+    hostname: watchdog_15
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_mcop_time_period
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=11
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_mcop_time_period
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - TIME_PERIOD=240
+      - MAXIMUM=20
+      - MASS_FLOW_RATE=es_mass_flow_rate
+      - FLOW_TEMPERATURE=es_flow_temperature
+      - RETURN_TEMPERATURE=bd_return_temperature
+      - POWER_DEMAND=hp_power_demand
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_16:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_rmse:0.2
+    hostname: watchdog_16
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_flow_temperature_rmse
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=6
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_flow_temperature_rmse
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TIME_PERIOD=20
+      - EXPONENT=2
+      - MAXIMUM=10
+      - SET_VALUE=es_set_flow_temperature
+      - ACTUAL_VALUE=es_flow_temperature
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_17:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_multithreshold:0.1
+    hostname: watchdog_17
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=watchdog_multithreshold
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=5
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_watchdog_of_watchdogs
+      - WITH_VALUE=True
+      - TYPE=1
+      - INPUT_NAMES_1=http://137.226.248.107:8080/data/hil_watchdog_data/multithreshold.json
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_18:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_rmse:0.2
+    hostname: watchdog_18
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_hb_ambient_temperature_rmse
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=6
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_hb_ambient_temperature_rmse
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TIME_PERIOD=120
+      - EXPONENT=2
+      - MAXIMUM=10
+      - SET_VALUE=hb_set_amb_temperature
+      - ACTUAL_VALUE=hb_ambient_temperature
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_19:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_mcop:0.1
+    hostname: watchdog_19
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=wd_es_mcop
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=11
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_mcop
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=1
+      - TIME_PERIOD=20
+      - MAXIMUM=20
+      - MASS_FLOW_RATE=es_mass_flow_rate
+      - FLOW_TEMPERATURE=es_flow_temperature
+      - RETURN_TEMPERATURE=bd_return_temperature
+      - POWER_DEMAND=hp_power_demand
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+  watchdog_20:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_multicalculation:0.1
+    hostname: watchdog_20
+    networks:
+      - net
+    command: -rm
+    environment:
+      - NAME=watchdog_multicalculation
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=5
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_hil_grade
+      - WITH_VALUE=True
+      - TYPE=1
+      - INPUT_NAMES_1=http://137.226.248.107:8080/data/hil_watchdog_data/multithreshold.json
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+networks:
+  net:
+# configs:
+  # watchdog_1.env:
+    # external: true

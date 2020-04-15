@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  node-red-dashboard:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/hil-node-red-dashboard:0.1
+    hostname: node-red-dashboard
+    environment:
+      - FILE_PATH_PERSIST_DATA=testing
+    # configs:
+    #  - nodered.env
+    networks:
+      - fiware
+    ports:
+      - "1880:1880"
+    volumes:
+      - /home/ubuntu/repos/portainer4fiware/node_red_dashboard/${FILE_PATH_PERSIST_DATA:-testing}/node-red/data/:/data
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+networks:
+  fiware:
+    # external: true
+
+# configs:
+  # nodered.env:
+    # external: true
