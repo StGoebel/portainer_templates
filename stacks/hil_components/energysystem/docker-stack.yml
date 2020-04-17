@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  energysystem:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/test_system:1.3
+    environment:
+      - START_TIME=0
+      - END_TIME=540
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True 
+      - API_KEY=xsn1gs10dnmwkl3
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+# networks:
+  # energysystem_net:
+    # external: true
+
+# configs:
+  # base.env:
+    # external: true
