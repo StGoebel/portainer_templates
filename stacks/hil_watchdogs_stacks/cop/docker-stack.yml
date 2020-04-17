@@ -1,0 +1,41 @@
+version: '3.7'
+
+services:
+  cop:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_cop:0.2
+    # configs:
+    #  - base.env
+    environment:
+      - NAME=cop
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=5
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_cop
+      - WITH_VALUE=True
+      - NUMBER_PARS=0
+      - MASS_FLOW_RATE=es_mass_flow_rate
+      - FLOW_TEMPERATURE=es_flow_temperature
+      - RETURN_TEMPERATURE=bd_return_temperature
+      - POWER_DEMAND=hp_power_demand
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+# networks:
+  # cop_net:
+    # external: true
+
+# configs:
+  # base.env:
+    # external: true

@@ -1,0 +1,41 @@
+version: '3.7'
+
+services:
+  absdeviation:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_absdeviation:0.2
+    # configs:
+    #  - base.env
+    environment:
+      - NAME=absdeviation
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_bd_temperature_virtual_abs
+      - WITH_VALUE=True
+      - NUMBER_PARS=1
+      - MAXIMUM=10
+      - INPUT_NAMES_1=bd_temperature_virtual
+      - INPUT_NAMES_2=bc_set_temperature_virtual
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+# networks:
+  # absdeviation_net:
+    # external: true
+
+# configs:
+  # base.env:
+    # external: true

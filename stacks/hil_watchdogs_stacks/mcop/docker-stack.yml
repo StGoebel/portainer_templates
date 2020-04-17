@@ -1,0 +1,44 @@
+version: '3.7'
+
+services:
+  mcop:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_mcop:0.1
+    # configs:
+    #  - base.env
+    environment:
+      - NAME=mcop
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=11
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_mcop_time_period
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - TIME_PERIOD=240
+      - MAXIMUM=20
+      - MASS_FLOW_RATE=es_mass_flow_rate
+      - FLOW_TEMPERATURE=es_flow_temperature
+      - RETURN_TEMPERATURE=bd_return_temperature
+      - POWER_DEMAND=hp_power_demand
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+# networks:
+  # mcop_net:
+    # external: true
+
+# configs:
+  # base.env:
+    # external: true

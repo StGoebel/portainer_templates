@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  rmse:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_rmse:0.2
+    # configs:
+    #  - base.env
+    environment:
+      - NAME=wd_rmse
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=5
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_bd_temperature_virtual_rmse
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TIME_PERIOD=15
+      - EXPONENT=2
+      - MAXIMUM=10
+      - SET_VALUE=bc_set_temperature_virtual
+      - ACTUAL_VALUE=bd_temperature_virtual
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+# networks:
+  # rmse_net:
+    # external: true
+
+# configs:
+  # base.env:
+    # external: true

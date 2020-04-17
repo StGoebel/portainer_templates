@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  threshold:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_threshold:0.2
+    # configs:
+    #  - base.env
+    environment:
+      - NAME=threshold
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_bd_flow_temperature_mod
+      - WITH_VALUE=True
+      - NUMBER_PARS=3
+      - TYPE=0
+      - THRESHOLD=30
+      - MAXIMUM=30
+      - INPUT_NAMES_1=bd_flow_temperature
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+# networks:
+  # threshold_net:
+    # external: true
+
+# configs:
+  # base.env:
+    # external: true

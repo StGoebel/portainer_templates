@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  deviation:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_deviation:0.3
+    # configs:
+    #  - base.env
+    environment:
+      - NAME=deviation
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - END_TIME=18000
+      - TIME_STEP=1
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_es_mass_flow_rate_dev
+      - WITH_VALUE=True
+      - NUMBER_PARS=2
+      - MAXIMUM=25
+      - MINIMUM=-25
+      - INPUT_NAMES_1=es_set_mass_flow_rate
+      - INPUT_NAMES_2=es_mass_flow_rate
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+# networks:
+  # deviation_net:
+    # external: true
+
+# configs:
+  # base.env:
+    # external: true

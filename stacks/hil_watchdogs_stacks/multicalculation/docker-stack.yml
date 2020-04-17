@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  multicalculation:
+    image: registry.git.rwth-aachen.de/ebc/team_bes/hil/hil_infrastructure_python/watchdog_multicalculation:0.1
+    # configs:
+    #  - base.env
+    environment:
+      - NAME=multicalculation
+      - HOST=137.226.248.107
+      - WATCHDOG_ID=urn:ngsi-ld:Watchdog:001
+      - FIWARE_SERVICE=testservice
+      - FIWARE_SERVICEPATH=/test/servicepath
+      - START_TIME=0
+      - MIN_TIME_STEP=5
+      - WITH_REALTIME=True
+      - WITH_OUTPUT=True
+      - OUTPUT_NAME=dg_hil_grade
+      - WITH_VALUE=True
+      - TYPE=1
+      - INPUT_NAMES_1=http://137.226.248.107:8080/data/hil_watchdog_data/multithreshold.json
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 50m
+
+# networks:
+  # multicalculation_net:
+    # external: true
+
+# configs:
+  # base.env:
+    # external: true
