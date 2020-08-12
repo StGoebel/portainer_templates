@@ -1,0 +1,256 @@
+version: '3.7'
+
+services:
+
+  # Orion is the original reference implementation of NGSIv2-Based datemanagement
+  orion:
+    # Please, do only run one service of the following: orion, orion-ld, djeane
+    # Sometimes the newest builds fail. Hence, we fixed a stable version that
+    # probably will be updated once in a while
+    image: fiware/orion:2.4.0
+    hostname: orion
+    depends_on:
+        - mongodb
+    networks:
+        - fiware_backend
+    ports:
+        - "1026:1026"
+    # Check carefully documentation for options:
+    # https://fiware-orion.readthedocs.io/en/master/admin/cli/index.html
+    # For in production mode please adjust these settings!
+    command: -dbhost mongodb
+            -logLevel ERROR
+            -logForHumans
+            -statCounters 
+            -statSemWait 
+            -statTiming 
+            -statNotifQueue
+            -reqMutexPolicy none
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://orion:1026/version"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Probably this placement is not necessary
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    #Limitation of logging
+    logging:
+      driver: "json-file"
+      options:
+         max-file: 5
+         max-size: 10m
+
+  #MongoDB is the unterlying database engine
+  mongodb:
+    # We try to always provide the latest stable version
+    # Check https://docs.mongodb.com/manual/release-notes/
+    image: mongo:4.2.2
+    hostname: mongo
+    # Because within the same network the containers
+    # are connected anyways port exposing is not required 
+    # --> only for external access
+    ports:
+    - "27017:27017"
+    
+    networks:
+        - fiware_backend
+    # 
+    command: --bind_ip_all --quiet
+    environment:
+        - ALLOW_EMPTY_PASSWORD=yes
+        - MONGODB_SYSTEM_LOG_VERBOSITY=3
+        - MONGO_DATA_DIR=/data/db
+        - MONGO_LOG_DIR=/dev/null
+        
+    volumes:
+       - mongodb:/data/db
+
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    
+    # Settings for log-files
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 5m
+  
+  #Mongo-express is a simple visualisation of mongoDB-instances
+  mongo-express:
+    image: mongo-express:0.54 # Check https://docs.mongodb.com/manual/release-notes/
+    hostname: mongo-express
+    # Because within the same network the containers
+    # are connected port exposing is not required --> only for external access
+    ports:
+        - "8081:8081"
+    networks:
+        - fiware_backend
+    environment:
+        - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
+        - ME_CONFIG_MONGODB_SERVER=mongodb
+        - ME_CONFIG_MONGODB_PORT=27017
+        - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+        # - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+    
+    # Adding dependencies
+    depends_on:
+        - mongo
+        
+    # Settings for log-files
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 5m
+
+
+  cratedb:
+    # We try to always provide the latest stable version!
+    # Please check release notes!
+    # In future we will probably provide an image of the community edition
+    image: crate:3.3.5
+    hostname: cratedb
+    networks:
+        - fiware_backend
+    ports:
+     - "4200:4200"
+    volumes:
+      - cratedb:/data
+    command: >
+      crate
+             -Clicense.enterprise=false
+             -Cauth.host_based.enabled=false
+             -Ccluster.name=fiware
+             -Chttp.cors.enabled=true
+             -Chttp.cors.allow-origin="*"
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role==manager]
+      #- node.hostname == <yourHostName>
+    healthcheck:
+      disable: false
+    # Limiting of logging
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 10m
+    environment:
+       - CRATE_HEAP_SIZE=2g
+       - MAX_MAP_COUNT=262144
+       - ES_JAVA_OPTS="-Xms1g -Xmx1g"
+
+  quantumleap:
+    # We try to always provide the latest stable version
+    image: smartsdk/quantumleap:0.7.4
+    hostname: quantumleap
+    depends_on:
+      - mongodb
+      - orion
+      - cratedb
+    healthcheck:
+      test: curl --fail -s http://quantumleap:8668/v2/version || exit 1
+    networks:
+      - fiware_backend
+    ports:
+      - "8668:8668"
+    deploy:
+      replicas: 1
+    environment:
+      - CRATE_HOST=cratedb
+      - LOGLEVEL=DEBUG
+        # - USE_GEOCODING=false
+        # - REDIS_HOST=redis
+        # - REDIS_PORT=6379
+    logging:
+        driver: "json-file"
+        options:
+            max-file: 5
+            max-size: 10m
+            
+  grafana:
+  # We try to always provide the latest stable version
+    image: grafana/grafana:6.7.2
+    depends_on:
+      - cratedb
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-worldmap-panel,grafana-simple-json-datasource
+    volumes:
+            - grafana:/var/lib/grafana
+            # - "./data:/var/lib/grafana"
+    ports:
+      - "3001:3000"
+    networks:
+      - fiware_backend
+  # Limiting of logging
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 5m
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role==manager]
+      #- node.hostname == <yourHostName>    
+ 
+
+  iot-agent-ul:
+	# We try to always provide the latest stable version
+    image: fiware/iotagent-ul:1.13.0
+    hostname: iot-agent-ul
+    networks:
+        - fiware_backend
+    depends_on:
+        - mongodb
+        - mqtt-broker
+    ports:
+        - "4061:4061"
+        - "7896:7896"
+    environment:
+        - IOTA_CB_HOST=orion # name of the context broker to update context
+        - IOTA_CB_PORT=1026 # port the context broker listens on to update context
+        - IOTA_NORTH_PORT=4061
+        - IOTA_REGISTRY_TYPE=mongodb #Whether to hold IoT device info in memory or in a database
+        - IOTA_LOG_LEVEL=DEBUG # The log level of the IoT Agent
+        - IOTA_TIMESTAMP=true # Supply timestamp information with each measurement
+        - IOTA_CB_NGSI_VERSION=v2 # use NGSIv2 when sending updates for active attributes
+        - IOTA_AUTOCAST=true # Ensure Ultralight number values are read as numbers not strings
+        - IOTA_MONGO_HOST=mongodb # The host name of MongoDB
+        - IOTA_MONGO_PORT=27017 # The port mongoDB is listening on
+        - IOTA_MONGO_DB=iotagentul # The name of the database used in mongoDB
+        - IOTA_MQTT_HOST=mqtt-broker # The host name of the MQTT Broker
+        - IOTA_MQTT_PORT=1883 # The port the MQTT Broker is listening on to receive topics
+        - IOTA_PROVIDER_URL=http://iot-agent-ul:4061
+    healthcheck:
+      test: curl --fail -s http://iot-agent-ul:4061/iot/about || exit 1
+    logging:
+         driver: "json-file"
+         options:
+           max-file: 5
+           max-size: 10m
+
+
+networks:
+  fiware_backend:
+    external: true
+  fiware_service:
+    external: true
+
+volumes:
+  grafana:
+  cratedb:
+  mongodb:
