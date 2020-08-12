@@ -1,53 +1,40 @@
 version: '3.7'
 services:
-  # Orion is the original reference implementation of NGSIv2-Based datemanagement
   orion:
-    # Please, do only run one service of the following: orion, orion-ld, djeane
     # Sometimes the newest builds fail. Hence, we fixed a stable version that
     # probably will be updated once in a while
-    image: fiware/orion:2.4.0
+    image: fiware/orion:2.2.0
     hostname: orion
     depends_on:
-        - mongodb
+      - mongo-db
     networks:
-        - fiware_backend
+      - fiware_backend
     ports:
-        - "1026:1026"
+      - "1026:1026"
     # Check carefully documentation for options:
     # https://fiware-orion.readthedocs.io/en/master/admin/cli/index.html
     # For in production mode please adjust these settings!
-    command: -dbhost mongodb
-            -logLevel ERROR
-            -logForHumans
-            -statCounters 
-            -statSemWait 
-            -statTiming 
-            -statNotifQueue
-            -reqMutexPolicy none
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://orion:1026/version"]
-      interval: 5m
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    # Probably this placement is not necessary
+    command: 
+      -dbhost mongo-db
+      -logLevel ERROR
+      -logForHumans
+      -statCounters
+      -statSemWait
+      -statTiming
+      -statNotifQueue 
+      # Docker stack does not allow additional health check
+      #heathcheck:
+      #  test: curl --fail -s http://orion:1026/version || exit 1
+      # Probably this placement is not necessary
     deploy:
       replicas: 1
       placement:
         constraints: [node.role == manager]
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-    #Limitation of logging
     logging:
       driver: "json-file"
       options:
-         max-file: 5
-         max-size: 10m  
-
-
+        max-file: 5
+        max-size: 10m
   #MongoDB is the unterlying database engine
   mongodb:
     # We try to always provide the latest stable version
@@ -111,7 +98,6 @@ services:
       options:
         max-file: 5
         max-size: 5m
-
   cratedb:
     # We try to always provide the latest stable version!
     # Please check release notes!
@@ -165,7 +151,7 @@ services:
     ports:
       - "8668:8668"
     deploy:
-      replicas: 5
+      replicas: 1
     environment:
       - CRATE_HOST=cratedb
       - LOGLEVEL=DEBUG
@@ -204,18 +190,7 @@ services:
       placement:
         constraints: [node.role==manager]
       #- node.hostname == <yourHostName>    
-  mqtt-broker:
-    image: eclipse-mosquitto
-    hostname: mqtt-broker
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    networks:
-        - fiware_backend
-    volumes:
-      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-
-
+      
 
   iot-agent-ul:
     image: fiware/iotagent-ul:1.9.0
@@ -252,7 +227,6 @@ services:
       options:
         max-file: 5
         max-size: 50m
-
 networks:
   fiware_backend:
     external: true
