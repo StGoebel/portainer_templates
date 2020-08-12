@@ -50,7 +50,7 @@ services:
       #  test: curl --fail -s http://orion:1026/version || exit 1
       # Probably this placement is not necessary
     deploy:
-      replicas: 5
+      replicas: 1
       placement:
         constraints: [node.role == manager]
     logging:
@@ -126,7 +126,7 @@ services:
       # - REDIS_HOST=redis
       # - REDIS_PORT=6379
     deploy:
-      replicas: 5
+      replicas: 1
       placement:
         constraints: [node.role == manager]
     logging:
