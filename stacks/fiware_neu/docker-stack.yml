@@ -6,7 +6,7 @@ services:
     image: fiware/orion:2.4.0
     hostname: orion
     depends_on:
-      - mongo-db
+      - mongodb
     networks:
       - fiware_backend
     ports:
@@ -15,7 +15,7 @@ services:
     # https://fiware-orion.readthedocs.io/en/master/admin/cli/index.html
     # For in production mode please adjust these settings!
     command: 
-      -dbhost mongo-db
+      -dbhost mongodb
       -logLevel ERROR
       -logForHumans
       -statCounters
