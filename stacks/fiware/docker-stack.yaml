@@ -3,7 +3,7 @@ services:
   orion:
     # Sometimes the newest builds fail. Hence, we fixed a stable version that
     # probably will be updated once in a while
-    image: fiware/orion:2.2.0
+    image: fiware/orion:2.4.0
     hostname: orion
     depends_on:
       - mongo-db
@@ -190,7 +190,24 @@ services:
       placement:
         constraints: [node.role==manager]
       #- node.hostname == <yourHostName>    
-      
+  
+  mosquitto:
+    image: eclipse-mosquitto
+    hostname: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    networks:
+        - fiware_backend
+    volumes:
+      - /home/ubuntu/repos/hil_infrastructure_python/portainer4fiware/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      # - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      # - /home/ubuntu/repos/n5geh.tools.portainer/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+        
 
   iot-agent-ul:
     image: fiware/iotagent-ul:1.9.0
