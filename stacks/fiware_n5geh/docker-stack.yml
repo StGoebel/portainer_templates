@@ -165,10 +165,10 @@ services:
     ports:
       - "8668:8668"
     deploy:
-      replicas: 1
+      replicas: 5
     environment:
       - CRATE_HOST=cratedb
-      - LOGLEVEL=DEBUG
+      - LOGLEVEL=ERROR
         # - USE_GEOCODING=false
         # - REDIS_HOST=redis
         # - REDIS_PORT=6379
@@ -176,7 +176,7 @@ services:
         driver: "json-file"
         options:
             max-file: 5
-            max-size: 10m
+            max-size: 1m
             
   grafana:
   # We try to always provide the latest stable version
