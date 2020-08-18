@@ -125,12 +125,14 @@ services:
     volumes:
         - cratedb:/data
     command: >
-        crate
-             -Clicense.enterprise=false
-             -Cauth.host_based.enabled=false
+      crate  
+             -Cauth.host_based.enabled=false    
              -Ccluster.name=fiware
              -Chttp.cors.enabled=true
              -Chttp.cors.allow-origin="*"
+   
+
+             
     deploy:
       mode: replicated
       replicas: 1
@@ -158,8 +160,7 @@ services:
         - mongodb
         - orion
         - cratedb
-    healthcheck:
-      test: curl --fail -s http://quantumleap:8668/v2/version || exit 1
+
     networks:
       - fiware_backend
     ports:
