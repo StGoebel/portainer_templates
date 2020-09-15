@@ -1,42 +1,54 @@
 version: '3.7'
 services:
   orion:
+    # Please, do only run one service of the following: orion, orion-ld, djeane
     # Sometimes the newest builds fail. Hence, we fixed a stable version that
     # probably will be updated once in a while
     image: fiware/orion:2.4.0
     hostname: orion
     depends_on:
-      - mongo-db
+        - mongodb
     networks:
-      - fiware_backend
+        - fiware_backend
     ports:
-      - "1026:1026"
+        - "1026:1026"
     # Check carefully documentation for options:
     # https://fiware-orion.readthedocs.io/en/master/admin/cli/index.html
     # For in production mode please adjust these settings!
     command: 
-      -dbhost mongo-db
-      -logLevel ERROR
-      -logForHumans
-      -statCounters
-      -statSemWait
-      -statTiming
-      -statNotifQueue 
-      # Docker stack does not allow additional health check
-      #heathcheck:
-      #  test: curl --fail -s http://orion:1026/version || exit 1
-      # Probably this placement is not necessary
+        -dbhost mongodb
+        -logLevel ERROR
+        -logForHumans
+        -statCounters 
+        -statSemWait 
+        -statTiming 
+        -statNotifQueue
+        -reqMutexPolicy none
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://orion:1026/version"]
+        interval: 5m
+        timeout: 10s
+        retries: 3
+        start_period: 40s
+    # Probably this placement is not necessary
     deploy:
       replicas: 1
       placement:
         constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    #Limitation of logging
     logging:
       driver: "json-file"
       options:
         max-file: 5
         max-size: 10m
   #MongoDB is the unterlying database engine
-  mongo-db:
+ 
+  mongodb:
     # We try to always provide the latest stable version
     # Check https://docs.mongodb.com/manual/release-notes/
     image: mongo:4.2.2
@@ -58,7 +70,7 @@ services:
         - MONGO_LOG_DIR=/dev/null
         
     volumes:
-       - mongo-db:/data/db
+        - mongodb:/data/db
 
     deploy:
       placement:
@@ -70,7 +82,7 @@ services:
       options:
         max-file: 5
         max-size: 5m
-
+  
   #Mongo-express is a simple visualisation of mongoDB-instances
   mongo-express:
     image: mongo-express:0.54 # Check https://docs.mongodb.com/manual/release-notes/
@@ -83,7 +95,7 @@ services:
         - fiware_backend
     environment:
         - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
-        - ME_CONFIG_MONGODB_SERVER=mongo-db
+        - ME_CONFIG_MONGODB_SERVER=mongodb
         - ME_CONFIG_MONGODB_PORT=27017
         - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
         # - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
@@ -98,25 +110,29 @@ services:
       options:
         max-file: 5
         max-size: 5m
-  crate:
+
+
+  cratedb:
     # We try to always provide the latest stable version!
     # Please check release notes!
     # In future we will probably provide an image of the community edition
-    image: crate:3.3.5
-    hostname: crate
+    image: crate:4.2.2
+    hostname: cratedb
     networks:
         - fiware_backend
     ports:
-     - "4200:4200"
+        - "4200:4200"
     volumes:
-      - crate:/data
+        - cratedb:/data
     command: >
-      crate
-             -Clicense.enterprise=false
-             -Cauth.host_based.enabled=false
+      crate  
+             -Cauth.host_based.enabled=false    
              -Ccluster.name=fiware
              -Chttp.cors.enabled=true
              -Chttp.cors.allow-origin="*"
+   
+
+             
     deploy:
       mode: replicated
       replicas: 1
@@ -132,29 +148,28 @@ services:
         max-file: 5
         max-size: 10m
     environment:
-       - CRATE_HEAP_SIZE=2g
-       - MAX_MAP_COUNT=262144
-       - ES_JAVA_OPTS="-Xms1g -Xmx1g"
+        - CRATE_HEAP_SIZE=2g
+        - MAX_MAP_COUNT=262144
+        - ES_JAVA_OPTS="-Xms1g -Xmx1g"
 
   quantumleap:
     # We try to always provide the latest stable version
-    image: smartsdk/quantumleap:0.7.4
+    image: smartsdk/quantumleap:latest
     hostname: quantumleap
     depends_on:
-      - mongo-db
-      - orion
-      - crate
-    healthcheck:
-      test: curl --fail -s http://quantumleap:8668/v2/version || exit 1
+        - mongodb
+        - orion
+        - cratedb
+
     networks:
       - fiware_backend
     ports:
       - "8668:8668"
     deploy:
-      replicas: 1
+      replicas: 5
     environment:
-      - CRATE_HOST=crate
-      - LOGLEVEL=DEBUG
+      - CRATE_HOST=cratedb
+      - LOGLEVEL=ERROR
         # - USE_GEOCODING=false
         # - REDIS_HOST=redis
         # - REDIS_PORT=6379
@@ -162,13 +177,13 @@ services:
         driver: "json-file"
         options:
             max-file: 5
-            max-size: 10m
+            max-size: 1m
             
   grafana:
   # We try to always provide the latest stable version
     image: grafana/grafana:7.1.3
     depends_on:
-      - crate
+      - cratedb
     environment:
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-worldmap-panel,grafana-simple-json-datasource
     volumes:
@@ -191,16 +206,16 @@ services:
         constraints: [node.role==manager]
       #- node.hostname == <yourHostName>    
   
-  mosquitto:
+  mqtt-broker:
     image: eclipse-mosquitto
-    hostname: mosquitto
+    hostname: mqtt-broker
     ports:
       - "1883:1883"
       - "9001:9001"
     networks:
         - fiware_backend
     volumes:
-      - /home/ubuntu/repos/hil_infrastructure_python/portainer4fiware/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - /home/ebcadmin/hil_infrastructure_python/portainer4fiware/mosquitto/
       # - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
       # - /home/ubuntu/repos/n5geh.tools.portainer/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
     deploy:
@@ -210,13 +225,13 @@ services:
         
 
   iot-agent-ul:
-    image: fiware/iotagent-ul:1.9.0
+    image: fiware/iotagent-ul:1.13.0
     hostname: iot-agent-ul
     networks:
       - fiware_backend
     depends_on:
-      - mongo-db
-      - mosquitto
+      - mongodb
+      - mqtt-broker
     ports:
       - "4061:4061"
       - "7896:7896"
@@ -229,12 +244,14 @@ services:
       - IOTA_TIMESTAMP=true # Supply timestamp information with each measurement
       - IOTA_CB_NGSI_VERSION=v2 # use NGSIv2 when sending updates for active attributes
       - IOTA_AUTOCAST=true # Ensure Ultralight number values are read as numbers not strings
-      - IOTA_MONGO_HOST=mongo-db # The host name of MongoDB
+      - IOTA_MONGO_HOST=mongodb # The host name of MongoDB
       - IOTA_MONGO_PORT=27017 # The port mongoDB is listening on
       - IOTA_MONGO_DB=iotagentul # The name of the database used in mongoDB
-      - IOTA_MQTT_HOST=mosquitto # The host name of the MQTT Broker
+      - IOTA_MQTT_HOST=mqtt-broker # The host name of the MQTT Broker
       - IOTA_MQTT_PORT=1883 # The port the MQTT Broker is listening on to receive topics
       - IOTA_PROVIDER_URL=http://iot-agent-ul:4061
+    healthcheck:
+      test: curl --fail -s http://iot-agent-ul:4061/iot/about || exit 1    
     deploy:
       replicas: 1
       placement:
@@ -244,10 +261,11 @@ services:
       options:
         max-file: 5
         max-size: 50m
+
 networks:
   fiware_backend:
     external: true
 volumes:
   grafana:
-  crate:
-  mongo-db:
+  cratedb:
+  mongodb:
