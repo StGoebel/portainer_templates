@@ -215,7 +215,7 @@ services:
     networks:
         - fiware_backend
     volumes:
-      - /home/ebcadmin/hil_infrastructure_python/portainer4fiware/mosquitto/
+      - /home/ubuntu/hil_infrastructure_python/portainer4fiware/mosquitto/
       # - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
       # - /home/ubuntu/repos/n5geh.tools.portainer/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
     deploy:
